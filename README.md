@@ -1,4 +1,4 @@
-This repo contains example configurations for setting up a web application via docker containers behind a Traefik v3, and includes Crowdsec for proactive threat prevention.
+This repo contains example configurations for setting up a web application via docker containers behind a Traefik v3, and includes Crowdsec for proactive threat prevention. It also includes a basic configuration for DIUN, an application for receiving notifications when new images are available for containers.
 
 In this specific example the application in question is a vtt application called foundryVTT, but any dockerized application could be used in place of this container. 
 
