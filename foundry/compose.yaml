@@ -1,0 +1,45 @@
+---
+secrets:
+  foundry_secrets:
+    file: ./secrets.json
+
+services:
+  foundry:
+    container_name: foundry
+    # image: felddy/foundryvtt:10.291 #Version for Pathfinder Game
+    image: felddy/foundryvtt:11.315 #V11 Versions
+    restart: unless-stopped
+    hostname: foundry #TODO: Not sure this matters
+    volumes: #
+      - type: bind
+        source: /mnt/app-data/foundryvtt/v11
+        target: /data
+    environment:
+      - FOUNDRY_UID={user_id}
+      - FOUNDRY_GID={group_id}
+      - CONTAINER_CACHE=/data/container_cache
+      - CONTAINER_PATCHES=/data/container_patches
+      - CONTAINER_PRESERVE_OWNER=/data/Data/my_assets
+      - FOUNDRY_PROXY_SSL=true
+      - FOUNDRY_CSS_THEME=fantasy # foundry|fantasy|scifi
+      - FOUNDRY_MINIFY_STATIC_FILES=true # Set to true to reduce network traffic by serving minified static JavaScript and CSS files.
+    ports:
+      - target: 30000
+        protocol: tcp
+    networks:
+      - proxy
+    init: true 
+    secrets:
+      - source: foundry_secrets
+        target: config.json
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.foundryvtt-secure.rule=Host(`{url}`)"
+      - "traefik.http.routers.foundryvtt-secure.service=foundryvtt"
+      - "traefik.http.routers.foundryvtt-secure.middlewares=security-headers@file"
+      - "traefik.http.services.foundryvtt.loadbalancer.server.port=30000"
+      - "diun.enable=true"
+        
+networks:
+  proxy:
+    external: true

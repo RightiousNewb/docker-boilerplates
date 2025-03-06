@@ -1,0 +1,33 @@
+---
+services:
+  traefik: # Reverse Proxy w/ auto discovery
+    image: traefik:v3.3 # The official v3 Traefik docker image LTS
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80" # The HTTP port
+      #- "9080:8080" # The Web UI (enabled by --api.insecure=true) DON'T USE IN PROD
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # So that Traefik can listen to the Docker events
+      - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro # traefik config
+      - ./data/certs/:/var/traefik/certs/:rw #manage whole directory for certs
+      - ./config/conf.d/:/etc/traefik/conf.d/:ro #dynamic configs directory for file provider
+      - /etc/localtime:/etc/localtime:ro #time management so things don´t get borked
+      - /var/log/traefik:/var/log/traefik:rw #log directory
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.api.service=api@internal" 
+      - "diun.enable=true"
+    networks:
+      - proxy
+
+
+networks:
+  proxy:
+    external: true
+  nextcloud-aio:
+    external: true

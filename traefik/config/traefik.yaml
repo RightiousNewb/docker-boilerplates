@@ -1,0 +1,92 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log: # Log level [TRACE, DEBUG, INFO, WARN, ERROR, FATAL]
+  level: DEBUG #Could change lvls after troublehooting
+
+api: # DISABLE THESE IN PROD Unless hardened
+  dashboard: false
+  insecure: false
+
+
+serverTransport:
+  insecureSkipVerify: true
+
+entryPoints:
+  web:
+    address: :80
+    http: 
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: :443
+    transport: # Extended transport timeouts for some apps
+      respondingTimeouts:
+        readTimeout: 600s
+        idleTimeout: 600s
+        writeTimeout: 600s
+    http:
+      tls:
+        certResolver: cloudflare
+        domains:
+          - main: "{url}"
+            sans:
+              - "*.{url}"
+      middlewares: #set middleware defaults for all public access
+        - crowdsec@file
+
+
+
+certificatesResolvers:
+  cloudflare:
+    acme:
+      email: "{email@email.com}"
+      storage: "/{path}/certs/cloudflare-acme.json"
+      caServer: "https://acme-v02.api.letsencrypt.org/directory" # Production Cert
+      #caServer: "https://acme-staging-v02.api.letsencrypt.org/directory" # Staging/Dev Cert
+      keyType: EC256
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
+providers:
+  file:
+    directory: "/etc/traefik/conf.d"
+    watch: true
+
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    watch: true
+    # Default host rule to containername.domain.example
+    # defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.rightiousrealm.com`)" # change 'example.com' to your proxy domain
+    exposedByDefault: false
+    network: proxy #network it listens on
+
+
+experimental:
+  plugins:
+    bouncer:  # crowdsec bouncer
+      moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      version: v1.3.5
+
+# Handles allowing traefik logs to be accessible by crowdsec
+accessLog:
+  filePath: "/var/log/traefik/traefik.log"
+  format: json
+  filters:
+    statusCodes:
+      - "200-299" # log successful http requests
+      - "400-599" # log failed http requests
+  # collect logs as in-memory buffer before writing into log file
+  bufferingSize: 0
+  fields:
+    headers:
+      defaultMode: drop # drop all headers per default
+      names:
+          User-Agent: keep # log user agent strings
+
+

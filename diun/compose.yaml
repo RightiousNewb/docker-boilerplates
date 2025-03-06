@@ -1,0 +1,28 @@
+---
+services:
+  diun:
+    image: crazymax/diun:latest
+    container_name: diun
+    command: serve
+    restart: unless-stopped
+    volumes:
+      - "./data:/data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - "TZ=UTC"
+      - "DIUN_WATCH_WORKERS=10"
+      - "DIUN_WATCH_SCHEDULE=0 */6 * * *"
+      - "LOG_JSON=false"
+      - "LOG_LEVEL=debug"
+      - "DIUN_WATCH_JITTER=30s"
+      - "DIUN_PROVIDERS_DOCKER=true"
+      - "DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT=true"
+      - "DIUN_NOTIF_MAIL_HOST=smtp.gmail.com"
+      - "DIUN_NOTIF_MAIL_PORT=587"
+      - "DIUN_NOTIF_MAIL_USERNAME=${SMTP_USERNAME}"
+      - "DIUN_NOTIF_MAIL_PASSWORD=${SMTP_PASSWORD}"
+      - "DIUN_NOTIF_MAIL_FROM={emailFrom@email.com}"
+      - "DIUN_NOTIF_MAIL_TO=emailTo@email.com"
+      - "DIUN_NOTIF_MAIL_TEMPLATETITLE={{ .Entry.Image }} {{ if (eq .Entry.Status \"new\") }}is available{{ else }}has been updated{{ end }}"
+
+

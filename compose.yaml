@@ -1,0 +1,26 @@
+---
+include:
+  - path: ./diun/compose.yaml
+    project_directory: ./diun
+    env_file:
+      - .env
+      - ./diun/.env
+
+  - path: ./foundry/compose.yaml
+    project_directory: ./foundry
+    env_file:
+      - .env
+      - ./foundry/.env
+
+
+  - path: ./traefik/compose.yaml
+    project_directory: ./traefik
+    env_file:
+      - .env
+      - ./traefik/.env
+
+  - path: ./crowdsec/compose.yaml
+    project_directory: ./crowdsec
+    env_file:
+      - .env
+      - ./crowdsec/.env

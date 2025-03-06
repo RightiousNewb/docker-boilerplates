@@ -1,0 +1,32 @@
+---
+services:
+  crowdsec:
+    group_add: #gives access to logreaders group for traefik logs
+      - "{traefik_group_id}"
+    image: crowdsecurity/crowdsec
+    container_name: crowdsec
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:{external-port}:8080 # port mapping for local firewall bouncers
+    expose:
+      - 8080 # http api for bouncers
+      - 6060 # metrics endpoint for prometheus
+      - 7422 # appsec waf endpoint
+    volumes:
+      # crowdsec container data
+      - /{location}/crowdsec/data:/var/lib/crowdsec/data
+      - /{location}/crowdsec/etc:/etc/crowdsec
+      # log bind mounts into crowdsec
+      - /var/log/auth.log:/var/log/auth.log:ro
+      - /var/log/syslog:/var/log/syslog:ro
+      - /var/log/traefik:/var/log/traefik:ro #need to be the same as traefik log location
+    environment:
+      - GID={crowdsec_group_id}
+      - UID={crowdsec_user_id}
+      - COLLECTIONS=crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios crowdsecurity/sshd crowdsecurity/linux crowdsecurity/appsec-generic-rules crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-crs
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

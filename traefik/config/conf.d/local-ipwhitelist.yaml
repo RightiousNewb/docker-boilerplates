@@ -1,0 +1,10 @@
+http:
+  middlewares:
+    local-ipwhitelist:
+      ipAllowList:
+        sourceRange:
+          - "192.168.0.0/24" # private class C
+          #- 127.0.0.1/32 # localhost
+          #- 10.0.0.0/8 # private class A
+          #- 172.16.0.0/12 # private class B
+          
